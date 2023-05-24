@@ -5,4 +5,4 @@ from .models import User
 @api_view(['GET'])
 def user(request):
   users = User.objects.all()
-  return Response(user)
+  return Response(users)
