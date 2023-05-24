@@ -19,4 +19,5 @@ def register(request):
 @api_view(['GET'])
 def user(request):
   users = User.objects.all()
-  return Response(users)
+  serializer = UserSerializer(users, many=True)
+  return Response(serializer.data)
