@@ -1,8 +1,11 @@
 from rest_framework import exceptions
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from .models import User
 from .serializers import UserSerializer
+from .authentication import generate_access_token, JWTAuthentication
 
 @api_view(['POST'])
 def register(request):
@@ -29,7 +32,26 @@ def login(request):
   if not user.check_password(password):
     raise exceptions.AuthenticationFailed('Incorrect Password.')
 
-  return Response('success')
+  response = Response()
+
+  token = generate_access_token(user)
+  response.set_cookie(key='jwt', value=token, httponly=True)
+  response.data = {
+    'jwt': token
+  }
+
+  return response
+
+class AuthenticatedUser(APIView):
+  permission_classes = [IsAuthenticated]
+  authenication_classes = [JWTAuthentication]
+
+  def get(self, request):
+    serializer = UserSerializer(request.user)
+
+    return Response({
+      'data': serializer.data
+    })
 
 @api_view(['GET'])
 def users(request):
